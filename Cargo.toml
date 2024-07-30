@@ -2,15 +2,10 @@
 name = "thing"
 version = "0.1.0"
 edition = "2021"
-targets = [
-    "thumbv7em-none-eabihf",
-]
 
 [dependencies]
-log = "0.4.22"
-uefi = { version = "0.29.0", features = [ "panic_handler", "logger" ] }
-bootloader = { version = "0.11.0", features = [ "uefi" ] }
-getrandom = { version = "0.2.15", features = ["custom"] }
+bootloader = "0.9.8"
+#bootloader = { version = "0.11.0", features = [ "uefi" ] }
 
 
 [profile.dev]
@@ -18,3 +13,5 @@ panic = "abort"
 
 [profile.release]
 panic = "abort"
+
+

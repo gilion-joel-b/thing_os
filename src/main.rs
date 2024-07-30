@@ -1,13 +1,25 @@
-#![no_main]
 #![no_std]
+#![no_main]
 
-use log::info;
-use uefi::prelude::*;
+use core::panic::PanicInfo;
 
-#[entry]
-fn main(_image_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
-    uefi::helpers::init(&mut system_table).unwrap();
-    info!("Hello world!");
-    system_table.boot_services().stall(10_000_000);
-    Status::SUCCESS
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
 }
+static HELLO: &[u8] = b"Hej Matilda";
+
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in HELLO.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
+        }
+    }
+
+    loop {}
+}
+
