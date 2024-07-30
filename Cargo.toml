@@ -9,6 +9,9 @@ targets = [
 [dependencies]
 log = "0.4.22"
 uefi = { version = "0.29.0", features = [ "panic_handler", "logger" ] }
+bootloader = { version = "0.11.0", features = [ "uefi" ] }
+getrandom = { version = "0.2.15", features = ["custom"] }
+
 
 [profile.dev]
 panic = "abort"
