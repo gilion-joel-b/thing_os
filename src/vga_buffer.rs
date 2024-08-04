@@ -1,6 +1,5 @@
-use core::ptr::write_volatile;
-use core::fmt::{self, Error, Write};
-
+use core::fmt::{self, Write};
+use core::ptr::{read_volatile, write_volatile};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -87,7 +86,28 @@ impl Writer {
         })
     }
 
-    fn new_line(&mut self) {}
+    fn new_line(&mut self) {
+        (1..BUFFER_HEIGHT)
+            .flat_map(|row| (0..BUFFER_WIDTH).map(move |col| (row, col)))
+            .for_each(|(row, col)| unsafe {
+                let dst = &mut self.buffer.chars[row - 1][col] as *mut ScreenChar;
+                let char = read_volatile(&self.buffer.chars[row][col]);
+                write_volatile(dst, char);
+            });
+        self.clear_row(BUFFER_HEIGHT - 1);
+        self.column_position = 0;
+    }
+
+    fn clear_row(&mut self, row: usize) {
+        let blank = ScreenChar {
+            ascii_character: b' ',
+            color_code: self.color_code,
+        };
+        (0..BUFFER_WIDTH).for_each(|col| unsafe {
+            let dst = &mut self.buffer.chars[row][col] as *mut ScreenChar;
+            write_volatile(dst, blank);
+        });
+    }
 }
 
 impl fmt::Write for Writer {
@@ -96,6 +116,12 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
+
+pub static WRITER: Writer = Writer {
+    column_position: 0,
+    color_code: ColorCode::new(Color::Yellow, Color::Black),
+    buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+};
 
 pub fn print_something() {
     let mut writer = Writer {
@@ -107,5 +133,5 @@ pub fn print_something() {
     writer.write_byte(b'H');
     writer.write_string("ello ");
     writer.write_string("Wörld!");
-    write!(writer, "The numbers are {} and {}", 42, 1.0/3.0).unwrap();
+    write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
 }
