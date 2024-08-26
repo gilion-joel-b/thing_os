@@ -1,4 +1,4 @@
-use core::fmt::{self, Write};
+use core::fmt::{self};
 use core::ptr::{read_volatile, write_volatile};
 use lazy_static::lazy_static;
 use spin::Mutex;
